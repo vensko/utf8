@@ -1,0 +1,18 @@
+{
+    "name": "vensko/utf8",
+    "description": "Yet another UTF-8 library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Dzmitry Vensko",
+            "email": "github@vensko.net"
+        }
+    ],
+    "autoload": {
+        "psr-4": { "Vensko\\" : "" }
+    },
+    "require": {
+        "php": ">=5.4",
+        "ext-mbstring": "*"
+    }
+}
