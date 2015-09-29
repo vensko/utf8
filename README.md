@@ -21,6 +21,7 @@ $stringUtf8 = Utf8::convert($stringUtf16, null, true); // force UTF-8 output
  - ASCII
  - UTF-8
  - UTF-16BE
+ - UTF-16LE
  - UTF-32LE with BOM
  - UTF-32BE with BOM
  - UTF-7 with BOM
