@@ -20,6 +20,8 @@ class Utf8
 	const UTF7 = 'UTF-7';
 	const UTF16BE = 'UTF-16BE';
 	const UTF16LE = 'UTF-16LE';
+	const UTF32BE = 'UTF-32BE';
+	const UTF32LE = 'UTF-32LE';
 	const CP1250 = 'Windows-1250';
 	const CP1251 = 'Windows-1251';
 	const CP1256 = 'Windows-1256';
@@ -57,8 +59,6 @@ class Utf8
 		190 => "\xBE", // l with acute accent
 	];
 
-	protected static $charCount = [];
-
 	/**
 	 * Ensures that a string is UTF-8 encoded
 	 *
@@ -74,7 +74,7 @@ class Utf8
 		}
 
 		if ($fromEncoding !== null) {
-			if ($fromEncoding === 'ASCII' || $fromEncoding === static::UTF8) {
+			if ($fromEncoding === static::UTF8 || $fromEncoding === static::ASCII) {
 				return $str;
 			}
 
@@ -108,39 +108,40 @@ class Utf8
 			return static::ASCII;
 		}
 
-		static::$charCount = [];
-
 		$enc = static::detectBOM($str)
 			OR $enc = static::detectUtf16WithoutBOM($str)
-			OR $enc = static::detectASCII($str)
 			OR $enc = static::detectUTF8($str)
-			OR $enc = static::detectSingleByteEncoding($str, static::$charCount);
+			OR $enc = static::detectSingleByteEncoding($str);
 
 		return $enc;
 	}
 
 	/**
 	 * @param string $str
+	 * @param array $chars
 	 * @return null|string
 	 */
-	public static function detectASCII($str)
+	public static function detectASCII($str, array $chars = [])
 	{
 		if ($str === '') {
 			return static::ASCII;
 		}
 
-		// count_chars returns the characters in ascending octet order
-		static::$charCount = count_chars($str, 1);
+		if (!$chars) {
+			$chars = count_chars($str, 1);
+		} else {
+			reset($chars);
+		}
 
 		// Check for null character
-		if (!key(static::$charCount)) {
+		if (!key($chars)) {
 			return null;
 		}
 
-		end(static::$charCount);
+		end($chars);
 
 		// Check for 8-bit character
-		if (key(static::$charCount) > 127) {
+		if (key($chars) > 127) {
 			return null;
 		}
 
@@ -192,7 +193,7 @@ class Utf8
 
 			if (static::UTF16LE_BOM === $bom) {
 				if (isset($str[3]) && static::UTF32LE_BOM === $bom.$str[2].$str[3]) {
-					return 'UTF-32LE';
+					return static::UTF32LE;
 				} else {
 					return static::UTF16LE;
 				}
@@ -206,11 +207,11 @@ class Utf8
 				}
 
 				if (static::UTF7_BOM === $bom) {
-					return 'UTF-7';
+					return static::UTF7;
 				}
 
 				if ("\x00\x00" === $bom && isset($str[3]) && static::UTF32BE_BOM === $bom.$str[2].$str[3]) {
-					return 'UTF-32BE';
+					return static::UTF32BE;
 				}
 			}
 		}
@@ -222,11 +223,12 @@ class Utf8
 	 * Detects ISO-8859-1 and Windows 1250, 1251
 	 *
 	 * @param string $str
-	 * @param array $chars
 	 * @return string
 	 */
-	public static function detectSingleByteEncoding($str, $chars = [])
+	public static function detectSingleByteEncoding($str)
 	{
+		$chars = count_chars($str, 1);
+
 		$enc = static::detectWinByUniqueCode($chars)
 		OR $enc = static::detectWin1251($chars, $str)
 		OR $enc = static::detectWin1250($chars, $str)
