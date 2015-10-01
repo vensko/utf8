@@ -68,6 +68,9 @@ class Utf8
         190 => "\xBE", // ľ | ѕ | ¾
     ];
 
+    // ß, ŕ, č, ď, đ, ń, ň, ř, ţ
+    public static $win1250NonSingle = '/\s[\xDF\xE0\xE8\xEF\xF0\xF1\xF2\xF8\xFE]\s/';
+
     /*
      * Windows-1251
      */
@@ -107,6 +110,9 @@ class Utf8
         136 => "\x88", // [empty]      | € | ˆ [circumflex]
     ];
 
+    // г, д, й, л, м, н, п, р, т, ф, х, ц, ч, щ, ш, ъ, ы, ь, э
+    public static $win1251NonSingle = '/\s[\xE3\xE4\xEB\xED\xEF\xF0\xF2\xF4\xF5\xF6\xF7\xF9\xFA\xFB\xFC\xFD\xE9\xEC\xF8]\s/';
+
     protected static $invalid1251Seq = [];
 
     /*
@@ -133,6 +139,9 @@ class Utf8
         215 => "\xD7", // × | Ч | ×
         247 => "\xF7", // ÷ | ч | ÷
     ];
+
+    // ß, ñ, ÿ
+    public static $win1252NonSingle = '/\s[\xDF\xF1\xFF]\s/';
 
     /**
      * Ensures that a string is UTF-8 encoded
@@ -385,6 +394,8 @@ class Utf8
             $weight -= 50;
         }
 
+        $weight -= 10 * preg_match_all(static::$win1250NonSingle, $str);
+
         $regex = '/[\xC0-\xFE\x8A-\x8F\x9A-\x9F\xA3\xB3\xA5\xAA\xAF\xB9\xBA\xBC\xBE\xBF][a-z]|[a-z][\xC0-\xFE\x8A-\x8F\x9A-\x9F\xA3\xB3\xA5\xAA\xAF\xB9\xBA\xBC\xBE\xBF]/';
         $weight += 2 * preg_match_all($regex, $str);
 
@@ -407,6 +418,8 @@ class Utf8
         foreach (array_intersect_key(static::$win1252Negatives, $chars) as $code => $hex) {
             $weight -= 10 * $chars[$code];
         }
+
+        $weight -= 10 * preg_match_all(static::$win1252NonSingle, $str);
 
         $regex = '/[\xC0-\xFF\x8A\x9A\x8C\x9C\x8E\x9E][a-z]|[a-z][\xC0-\xFF\x8A\x9A\x8C\x9C\x8E\x9E]/';
         $weight += 5 * preg_match_all($regex, $str);
@@ -434,6 +447,8 @@ class Utf8
         foreach (array_intersect_key(static::$win1251Negatives, $chars) as $code => $hex) {
             $weight -= 10 * $chars[$code];
         }
+
+        $weight -= 10 * preg_match_all(static::$win1251NonSingle, $str);
 
         // Either Cyrillic capital YA or German eszett
         if (isset($chars[223])) {
