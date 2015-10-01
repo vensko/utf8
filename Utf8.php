@@ -431,7 +431,7 @@ class Utf8
             $weight += 10 * $chars[$code];
         }
 
-        foreach (array_intersect_key(static::$win1252Negatives, $chars) as $code => $hex) {
+        foreach (array_intersect_key(static::$win1251Negatives, $chars) as $code => $hex) {
             $weight -= 10 * $chars[$code];
         }
 
@@ -550,8 +550,8 @@ class Utf8
             'ш:д,ж,з,й,щ,ъ',
             'щ:б,г,д,ж,з,й,л,п,т,ф,х,ц,ч,ш,щ,ъ,ы,э,ю,я',
             'ъ: ,ц,у,к,н,г,ш,щ,з,й,х,ъ,ф,ы,в,а,п,р,о,л,д,ж,э,ч,с,м,и,т,ь,б',
-            'ы:а,ё,о,ф,э',
-            'ь:а,й,л,у',
+            'ы:а,ё,о,ф,э,ы',
+            'ь:а,й,л,у,ы',
             'э:а,е,ё,ц,ч,э,ю,ъ,ы,ь',
             'ю:у,ъ,ы,ь',
             'я:а,ё,о,э,ъ,ы,ь',
