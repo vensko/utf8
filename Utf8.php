@@ -34,20 +34,46 @@ class Utf8
 
     public static $asciiVowels = [65, 69, 73, 79, 85, 89, 97, 101, 105, 111, 117, 121];
 
-    protected static $win1251Positives = [
-        255 => "\xFF", // ˙ [dot]      | я (Cyrillic ya)  | ÿ (old Dutch, rare French names)
-        //223 => "\xDF", // ß (eszett) | Я (Cyrillic YA)  | ß (eszett)
-        254 => "\xFE", // ţ (Gagauz)   | ю (Cyrillic yu)  | þ (Icelandic, Old English)
-        222 => "\xDE", // Ţ (Gagauz)   | Ю (Cyrillic YU)  | Þ (Icelandic, Old English)
-        215 => "\xD7", // × [times]    | Ч (Cyrillic CH)  | × [times]
-        247 => "\xF7", // ÷            | ч (Cyrillic ch)  | ÷
-        184 => "\xB8", // ¸ [cedilla]  | ё (Cyrillic yo)  | ¸ [cedilla]
-        178 => "\xB2", // ˛ [ogonek]   | І (Belarusian I) | ² [square]
-        162 => "\xA2", // ˇ [caron]    | ў (Belarusian u) | ¢ [cent]
-        136 => "\x88", // [empty]      | € [euro]         | ˆ [circumflex]
+    /*
+     * Windows-1250
+     */
+
+    protected static $win1250StopList = [
+        129 => true, // all empty
+        131 => true,
+        136 => true,
+        144 => true,
+        152 => true,
     ];
 
+    protected static $win1250Negatives = [
+        255 => "\xFF", // ˙ | я | ÿ (old Dutch, rare French names)
+        184 => "\xB8", // ¸ | ё | ¸
+        168 => "\xB8", // ¨ | Ё | ¨
+        178 => "\xB2", // ˛ | І | ²
+        161 => "\xA1", // ˇ | Ў | ¡
+        162 => "\xA2", // ˇ | ў | ¢
+        215 => "\xD7", // × | Ч | ×
+        247 => "\xF7", // ÷ | ч | ÷
+    ];
+
+    protected static $win1250Positives = [
+        163 => "\xA3", // Ł | Ј | £
+        141 => "\x8D", // Ť | Ќ | [empty]
+        157 => "\x9D", // ť | ќ | [empty]
+        143 => "\x8F", // Ź | Џ | [empty]
+        159 => "\x9F", // ź | џ | Ÿ
+        165 => "\xA5", // Ą | Ґ | ¥
+        188 => "\xBC", // Ľ | ј | ¼
+        190 => "\xBE", // ľ | ѕ | ¾
+    ];
+
+    /*
+     * Windows-1251
+     */
+
     protected static $win1251StopList = [
+        152 => true,   // [empty]
         142 => "\x8E", // Ž | Ћ (Serbian Tshe)    | Ž
         158 => "\x9E", // ž | ћ (Serbian Tshe)    | ž
         143 => "\x8F", // Ź | Џ (Macedonian Dzhe) | [empty]
@@ -56,30 +82,56 @@ class Utf8
         156 => "\x9C", // ś | њ (Macedonian Nje)  | œ (French)
         138 => "\x8A", // Š | Љ (Macedonian Lje)  | Š
         154 => "\x9A", // š | љ (Macedonian Lje)  | š
+    ]; // Sorry, Macedonians
+
+    protected static $win1251Negatives = [
+        163 => "\xA3", // Ł | Ј | £
+        188 => "\xBC", // Ľ | ј | ¼
+        180 => "\xB4", // ´ | ґ | ´
+    ];
+
+    protected static $win1251Positives = [
+        255 => "\xFF", // ˙ [dot]      | я | ÿ (old Dutch, rare French names)
+        240 => "\xF0", // đ            | р | ð (Icelandic, Old English)
+        208 => "\xD0", // Đ            | Р | Ð (Icelandic, Macedonian)
+        254 => "\xFE", // ţ (Gagauz)   | ю | þ (Icelandic, Old English)
+        222 => "\xDE", // Ţ (Gagauz)   | Ю | Þ (Icelandic, Old English)
+        215 => "\xD7", // × [times]    | Ч | × [times]
+        247 => "\xF7", // ÷            | ч | ÷
+        184 => "\xB8", // ¸ [cedilla]  | ё | ¸ [cedilla]
+        168 => "\xB8", // ¨            | Ё | ¨
+        178 => "\xB2", // ˛ [ogonek]   | І | ² [square]
+        162 => "\xA2", // ˇ [caron]    | ў | ¢ [cent]
+        186 => "\xBA", // ş            | є | º
+        170 => "\xAA", // Ş            | Є | ª
+        136 => "\x88", // [empty]      | € | ˆ [circumflex]
     ];
 
     protected static $invalid1251Seq = [];
 
-    protected static $win1250Positives = [
-        163 => "\xA3", // Ł
-        141 => "\x8D", // Ť
-        143 => "\x8F", // Ź
-        159 => "\x9F", // ź
+    /*
+     * Windows-1252
+     */
+
+    protected static $win1252StopList = [
+        129 => true, // all empty
+        141 => true,
+        143 => true,
+        144 => true,
+        157 => true,
     ];
 
-    protected static $diacritics1250 = [
-        163 => "\xA3", // L with stroke
-        179 => "\xB3", // l with stroke
-        143 => "\x8F", // Z with acute accent
-        159 => "\x9F", // z with acute accent
-        175 => "\xAF", // Z with dot
-        191 => "\xBF", // z with dot
-        165 => "\xA5", // A with ogonek
-        185 => "\xB9", // a with ogonek
-        170 => "\xAA", // S with ogonek
-        186 => "\xBA", // s with ogonek
-        188 => "\xBC", // L with acute accent
-        190 => "\xBE", // l with acute accent
+    protected static $win1252Negatives = [
+        184 => "\xB8", // ¸ | ё | ¸
+        168 => "\xB8", // ¨ | Ё | ¨
+        175 => "\xAF", // Ż | Ї | ¯
+        179 => "\xB3", // ł | і | ³
+        178 => "\xB2", // ˛ | І | ²
+        159 => "\x9F", // ź | џ | Ÿ (old Dutch, rare French names)
+        255 => "\xFF", // ˙ | я | ÿ
+        170 => "\xAA", // Ş | Є | ª
+        215 => "\xD7", // × | Ч | ×
+        247 => "\xF7", // ÷ | ч | ÷
     ];
 
     /**
@@ -262,21 +314,26 @@ class Utf8
         $candidates = [];
 
         foreach (static::$singleByteDetectors as $enc => $callback) {
-            $candidates[$enc] = $callback($chars, $str);
+            $weight = $callback($chars, $str);
 
-            if ($candidates[$enc] === true) {
+            if ($weight === true) {
                 return $enc;
             }
 
-            if ($candidates[$enc] === false) {
-                unset($candidates[$enc]);
+            if ($weight === false) {
+                continue;
             }
+
+            $candidates[$enc] = $weight;
         }
 
-        asort($candidates);
-        end($candidates);
+        if ($candidates) {
+            asort($candidates);
+            end($candidates);
+            return key($candidates);
+        }
 
-        return $candidates ? key($candidates) : static::CP1251;
+        return static::CP1251;
     }
 
     /**
@@ -286,8 +343,7 @@ class Utf8
      */
     protected static function detectWin1250(array $chars, $str)
     {
-        // €
-        if (isset($chars[136])) {
+        if (array_intersect_key(static::$win1250StopList, $chars)) {
             return false;
         }
 
@@ -316,8 +372,17 @@ class Utf8
 
         $weight = 0;
 
-        if ($positives = array_intersect_key(static::$win1250Positives, $chars)) {
-            $weight += count($positives) * 25;
+        foreach (array_intersect_key(static::$win1250Positives, $chars) as $code => $hex) {
+            $weight += 10 * $chars[$code];
+        }
+
+        foreach (array_intersect_key(static::$win1250Negatives, $chars) as $code => $hex) {
+            $weight -= 10 * $chars[$code];
+        }
+
+        // č | и | è
+        if (isset($chars[232]) && strpos($str, "\x20\xE8\x20") !== false) {
+            $weight -= 50;
         }
 
         $regex = '/[\xC0-\xFE\x8A-\x8F\x9A-\x9F\xA3\xB3\xA5\xAA\xAF\xB9\xBA\xBC\xBE\xBF][a-z]|[a-z][\xC0-\xFE\x8A-\x8F\x9A-\x9F\xA3\xB3\xA5\xAA\xAF\xB9\xBA\xBC\xBE\xBF]/';
@@ -333,8 +398,18 @@ class Utf8
      */
     protected static function detectWin1252(array $chars, $str)
     {
+        if (array_intersect_key(static::$win1252StopList, $chars)) {
+            return false;
+        }
+
+        $weight = 0;
+
+        foreach (array_intersect_key(static::$win1252Negatives, $chars) as $code => $hex) {
+            $weight -= 10 * $chars[$code];
+        }
+
         $regex = '/[\xC0-\xFF\x8A\x9A\x8C\x9C\x8E\x9E][a-z]|[a-z][\xC0-\xFF\x8A\x9A\x8C\x9C\x8E\x9E]/';
-        $weight = 5 * preg_match_all($regex, $str);
+        $weight += 5 * preg_match_all($regex, $str);
 
         return $weight;
     }
@@ -353,7 +428,11 @@ class Utf8
         $weight = 0;
 
         foreach (array_intersect_key(static::$win1251Positives, $chars) as $code => $hex) {
-            $weight += 5 * $chars[$code];
+            $weight += 10 * $chars[$code];
+        }
+
+        foreach (array_intersect_key(static::$win1252Negatives, $chars) as $code => $hex) {
+            $weight -= 10 * $chars[$code];
         }
 
         // Either Cyrillic capital YA or German eszett
@@ -388,8 +467,8 @@ class Utf8
             }
         }
 
-        $regex = '/([\xC0-\xD9\xDD-\xDF\xA1\xA8][\xE0-\xFF\xA2\xB3\xB8\xBA\xBF\xB5]{2,}|[\xE0-\xFF\xA2\xB3\xB8\xBA\xBF\xB5]{3,})/';
-        $weight += 2 * preg_match_all($regex, $str);
+        $regex = '/([\xC0-\xD9\xDD-\xDF\xA1\xA8\xE0-\xFF\xA2\xB3\xB8\xBA\xBF\xB5][\xE0-\xFF\xA2\xB3\xB8\xBA\xBF\xB5]{2})/';
+        $weight += 3 * preg_match_all($regex, $str);
 
         $i = 0;
         while (isset($str[$i + 1])) {
@@ -470,7 +549,7 @@ class Utf8
             'ч:б,г,з,й,п,ф,щ,ъ,ю,я',
             'ш:д,ж,з,й,щ,ъ',
             'щ:б,г,д,ж,з,й,л,п,т,ф,х,ц,ч,ш,щ,ъ,ы,э,ю,я',
-            'ъ:ц,у,к,н,г,ш,щ,з,й,х,ъ,ф,ы,в,а,п,р,о,л,д,ж,э,ч,с,м,и,т,ь,б',
+            'ъ: ,ц,у,к,н,г,ш,щ,з,й,х,ъ,ф,ы,в,а,п,р,о,л,д,ж,э,ч,с,м,и,т,ь,б',
             'ы:а,ё,о,ф,э',
             'ь:а,й,л,у',
             'э:а,е,ё,ц,ч,э,ю,ъ,ы,ь',
