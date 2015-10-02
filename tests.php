@@ -12,7 +12,7 @@ foreach (glob(__DIR__.'/tests/*') as $dir) {
 
     foreach (glob($dir.'/*.*') as $file) {
         $text = file_get_contents($file);
-        echo Utf8::detect($text) ?: '[NOT DETECTED]';
+        echo Utf8::detectEncoding($text) ?: '[NOT DETECTED]';
         echo " <- ".basename($file);
         echo "\n";
     }

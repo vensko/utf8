@@ -39,7 +39,7 @@ class Utf8
     public static function convert($str, $fromEncoding = null, $force = false)
     {
         if ($fromEncoding === null) {
-            $fromEncoding = static::detect($str);
+            $fromEncoding = static::detectEncoding($str);
         }
 
         if ($fromEncoding !== null) {
