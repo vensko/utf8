@@ -44,7 +44,6 @@ class Alphabet
     public static $langCharsets = [
         // Windows-1250
         self::HUNGARIAN => Utf8::CP1250,
-        self::ALBANIAN => Utf8::CP1250,
         self::SERBIAN => Utf8::CP1250,
         self::POLISH => Utf8::CP1250,
         self::SLOVENE => Utf8::CP1250,
@@ -53,8 +52,8 @@ class Alphabet
         self::SLOVAK => Utf8::CP1250,
         self::SORBIAN => Utf8::CP1250,
         self::TURKMEN => Utf8::CP1250,
+
         // Windows-1252
-        self::GERMAN => Utf8::CP1252,
         self::FRENCH => Utf8::CP1252,
         self::SPANISH => Utf8::CP1252,
         self::PORTUGUESE => Utf8::CP1252,
@@ -64,6 +63,10 @@ class Alphabet
         self::NORWEGIAN => Utf8::CP1252,
         self::SWEDISH => Utf8::CP1252,
         self::ICELANDIC => Utf8::CP1252,
+
+        // fit both
+        self::GERMAN => Utf8::CP1252,
+        self::ALBANIAN => Utf8::CP1252,
     ];
 
     public static $langIndex = [];
@@ -258,12 +261,6 @@ class Alphabet
             220, // Ü
             252, // ü
         ],
-        self::ALBANIAN => [
-            203, // Ë
-            235, // ë
-            199, // Ç
-            231, // ç
-        ],
         self::SERBIAN => [ // Bosnian, Croatian, Serbian, and Montenegrin
             200, // Č
             232, // č
@@ -382,6 +379,13 @@ class Alphabet
             142, // Ž
             158, // ž
         ],
+        /*
+        self::ALBANIAN => [ // Same as CP1252
+            203, // Ë
+            235, // ë
+            199, // Ç
+            231, // ç
+        ],
         self::SORBIAN => [
             200, // Č
             232, // č
@@ -422,6 +426,7 @@ class Alphabet
             221, // Ý
             253, // ý
         ],
+        */
     ];
 
     public static $nonAlpha = [
