@@ -2,159 +2,44 @@
 
 namespace Vensko;
 
-Utf8::$asciiVowels = array_fill_keys(Utf8::$asciiVowels, true);
-Utf8::prepareNonCyrillicSequences();
+Utf8::$asciiRange = array_fill_keys(range(0, 127), true);
 
 class Utf8
 {
     const UTF16BE_BOM = "\xFE\xFF";
     const UTF16LE_BOM = "\xFF\xFE";
-    const UTF8_BOM = "\xEF\xBB\xBF"; // chr(0xEF).chr(0xBB).chr(0xBF)
+    const UTF8_BOM = "\xEF\xBB\xBF";
     const UTF7_BOM = "\x2B\x2F\x76";
     const UTF32BE_BOM = "\x00\x00\xFE\xFF";
     const UTF32LE_BOM = "\xFF\xFE\x00\x00";
 
     const ASCII = 'ASCII';
+
     const UTF8 = 'UTF-8';
     const UTF7 = 'UTF-7';
     const UTF16BE = 'UTF-16BE';
     const UTF16LE = 'UTF-16LE';
     const UTF32BE = 'UTF-32BE';
     const UTF32LE = 'UTF-32LE';
+
     const CP1250 = 'Windows-1250';
     const CP1251 = 'Windows-1251';
     const CP1252 = 'Windows-1252';
-    const CP1256 = 'Windows-1256';
 
-    public static $singleByteDetectors = [
-        self::CP1252 => [__CLASS__, 'detectWin1252'],
-        self::CP1250 => [__CLASS__, 'detectWin1250'],
-        self::CP1251 => [__CLASS__, 'detectWin1251'],
-    ];
-
-    public static $asciiVowels = [65, 69, 73, 79, 85, 89, 97, 101, 105, 111, 117, 121];
-
-    /*
-     * Windows-1250
-     */
-
-    protected static $win1250StopList = [
-        129 => true, // all empty
-        131 => true,
-        136 => true,
-        144 => true,
-        152 => true,
-    ];
-
-    protected static $win1250Negatives = [
-        255 => "\xFF", // ˙ | я | ÿ (old Dutch, rare French names)
-        184 => "\xB8", // ¸ | ё | ¸
-        168 => "\xB8", // ¨ | Ё | ¨
-        178 => "\xB2", // ˛ | І | ²
-        161 => "\xA1", // ˇ | Ў | ¡
-        162 => "\xA2", // ˇ | ў | ¢
-        215 => "\xD7", // × | Ч | ×
-        247 => "\xF7", // ÷ | ч | ÷
-    ];
-
-    protected static $win1250Positives = [
-        163 => "\xA3", // Ł | Ј | £
-        141 => "\x8D", // Ť | Ќ | [empty]
-        157 => "\x9D", // ť | ќ | [empty]
-        143 => "\x8F", // Ź | Џ | [empty]
-        159 => "\x9F", // ź | џ | Ÿ
-        165 => "\xA5", // Ą | Ґ | ¥
-        188 => "\xBC", // Ľ | ј | ¼
-        190 => "\xBE", // ľ | ѕ | ¾
-    ];
-
-    // ß, ŕ, č, ď, đ, ń, ň, ř, ţ
-    public static $win1250NonSingle = '/\s[\xDF\xE0\xE8\xEF\xF0\xF1\xF2\xF8\xFE]\s/';
-
-    /*
-     * Windows-1251
-     */
-
-    protected static $win1251StopList = [
-        152 => true,   // [empty]
-        142 => "\x8E", // Ž | Ћ (Serbian Tshe)    | Ž
-        158 => "\x9E", // ž | ћ (Serbian Tshe)    | ž
-        143 => "\x8F", // Ź | Џ (Macedonian Dzhe) | [empty]
-        159 => "\x9F", // ź | џ (Macedonian Dzhe) | Ÿ (old Dutch, rare French names)
-        140 => "\x8C", // Ś | Њ (Macedonian Nje)  | Œ (French)
-        156 => "\x9C", // ś | њ (Macedonian Nje)  | œ (French)
-        138 => "\x8A", // Š | Љ (Macedonian Lje)  | Š
-        154 => "\x9A", // š | љ (Macedonian Lje)  | š
-    ]; // Sorry, Macedonians
-
-    protected static $win1251Negatives = [
-        163 => "\xA3", // Ł | Ј | £
-        188 => "\xBC", // Ľ | ј | ¼
-        180 => "\xB4", // ´ | ґ | ´
-    ];
-
-    protected static $win1251Positives = [
-        255 => "\xFF", // ˙ [dot]      | я | ÿ (old Dutch, rare French names)
-        240 => "\xF0", // đ            | р | ð (Icelandic, Old English)
-        208 => "\xD0", // Đ            | Р | Ð (Icelandic, Macedonian)
-        254 => "\xFE", // ţ (Gagauz)   | ю | þ (Icelandic, Old English)
-        222 => "\xDE", // Ţ (Gagauz)   | Ю | Þ (Icelandic, Old English)
-        215 => "\xD7", // × [times]    | Ч | × [times]
-        247 => "\xF7", // ÷            | ч | ÷
-        184 => "\xB8", // ¸ [cedilla]  | ё | ¸ [cedilla]
-        168 => "\xB8", // ¨            | Ё | ¨
-        178 => "\xB2", // ˛ [ogonek]   | І | ² [square]
-        162 => "\xA2", // ˇ [caron]    | ў | ¢ [cent]
-        186 => "\xBA", // ş            | є | º
-        170 => "\xAA", // Ş            | Є | ª
-        136 => "\x88", // [empty]      | € | ˆ [circumflex]
-    ];
-
-    // г, д, й, л, м, н, п, р, т, ф, х, ц, ч, щ, ш, ъ, ы, ь, э
-    public static $win1251NonSingle = '/\s[\xE3\xE4\xEB\xED\xEF\xF0\xF2\xF4\xF5\xF6\xF7\xF9\xFA\xFB\xFC\xFD\xE9\xEC\xF8]\s/';
-
-    protected static $invalid1251Seq = [];
-
-    /*
-     * Windows-1252
-     */
-
-    protected static $win1252StopList = [
-        129 => true, // all empty
-        141 => true,
-        143 => true,
-        144 => true,
-        157 => true,
-    ];
-
-    protected static $win1252Negatives = [
-        184 => "\xB8", // ¸ | ё | ¸
-        168 => "\xB8", // ¨ | Ё | ¨
-        175 => "\xAF", // Ż | Ї | ¯
-        179 => "\xB3", // ł | і | ³
-        178 => "\xB2", // ˛ | І | ²
-        159 => "\x9F", // ź | џ | Ÿ (old Dutch, rare French names)
-        255 => "\xFF", // ˙ | я | ÿ
-        170 => "\xAA", // Ş | Є | ª
-        215 => "\xD7", // × | Ч | ×
-        247 => "\xF7", // ÷ | ч | ÷
-    ];
-
-    // ß, ñ, ÿ
-    public static $win1252NonSingle = '/\s[\xDF\xF1\xFF]\s/';
+    public static $asciiRange = [];
 
     /**
      * Ensures that a string is UTF-8 encoded
      *
      * @param string|$str
      * @param string|null $fromEncoding
-     * @param bool $forceUTF8
+     * @param bool $force
      * @return string
      */
-    public static function convert($str, $fromEncoding = null, $forceUTF8 = false)
+    public static function utf8($str, $fromEncoding = null, $force = false)
     {
         if ($fromEncoding === null) {
-            $fromEncoding = static::detectEncoding($str);
+            $fromEncoding = static::detect($str);
         }
 
         if ($fromEncoding !== null) {
@@ -165,7 +50,7 @@ class Utf8
             return mb_convert_encoding($str, static::UTF8, $fromEncoding);
         }
 
-        return $forceUTF8 ? mb_convert_encoding($str, static::UTF8) : $str;
+        return $force ? mb_convert_encoding($str, static::UTF8) : $str;
     }
 
     /**
@@ -186,7 +71,7 @@ class Utf8
      * @param string $str
      * @return string
      */
-    public static function detectEncoding($str)
+    public static function detect($str)
     {
         if ($str === '') {
             return static::ASCII;
@@ -306,282 +191,83 @@ class Utf8
     }
 
     /**
-     * Detects ISO-8859-1 and Windows 1250, 1251
+     * Detects Windows 1250, 1251, 1252
      *
      * @param string $str
      * @return string
      */
     public static function detectSingleByteEncoding($str)
     {
+        if (strpos($str, '<') !== false) {
+            $str = strip_tags($str);
+        }
+
+        $regex = '/\b[\xC0-\xD9\xDD-\xDF\xA1\xA8\xE0-\xFF\xA2\xB3\xB8\xBA\xBF\xB5][\xE0-\xFF\xA2\xB3\xB8\xBA\xBF\xB5]+\b/';
+        $nonLatinWords = preg_match_all($regex, $str);
+
+        if ($nonLatinWords) {
+            $regex = '/\b(?:[a-z]+[\xC0-\xFF\x8A\x9A\x8C\x9C\x8E\x9E]|[\xC0-\xFF\x8A\x9A\x8C\x9C\x8E\x9E]+[a-z])[a-z]*\b/';
+            $latinWords = preg_match_all($regex, $str);
+
+            if ($nonLatinWords > $latinWords) {
+                return static::CP1251;
+            }
+        }
+
         $chars = count_chars($str, 1);
+        $chars = array_diff_key($chars, static::$asciiRange);
 
-        // Arabic
-        if (isset($chars[144])) {
-            return static::CP1256;
-        }
-
-        $candidates = [];
-
-        foreach (static::$singleByteDetectors as $enc => $callback) {
-            $weight = $callback($chars, $str);
-
-            if ($weight === true) {
-                return $enc;
-            }
-
-            if ($weight === false) {
-                continue;
-            }
-
-            $candidates[$enc] = $weight;
-        }
-
-        if ($candidates) {
-            asort($candidates);
-            end($candidates);
-            return key($candidates);
-        }
-
-        return static::CP1251;
-    }
-
-    /**
-     * @param array $chars
-     * @param string $str
-     * @return null|string
-     */
-    protected static function detectWin1250(array $chars, $str)
-    {
-        if (array_intersect_key(static::$win1250StopList, $chars)) {
-            return false;
-        }
-
-        // ą
-        if (isset($chars[185])) {
-            $pos = strpos($str, "\xB9");
-
-            if ($pos !== 0) {
-                if (!isset($str[$pos + 1])) {
-                    return true;
-                }
-
-                $prev = ord($str[$pos - 1]);
-
-                if ($prev > 64 && $prev < 123) {
-                    return true;
-                }
-
-                $next = ord($str[$pos + 1]);
-
-                if (($next > 96 && $next < 123) || $next === 179) {
-                    return true;
-                }
-            }
-        }
-
-        $weight = 0;
-
-        foreach (array_intersect_key(static::$win1250Positives, $chars) as $code => $hex) {
-            $weight += 10 * $chars[$code];
-        }
-
-        foreach (array_intersect_key(static::$win1250Negatives, $chars) as $code => $hex) {
-            $weight -= 10 * $chars[$code];
-        }
-
-        // č | и | è
-        if (isset($chars[232]) && strpos($str, "\x20\xE8\x20") !== false) {
-            $weight -= 50;
-        }
-
-        $weight -= 10 * preg_match_all(static::$win1250NonSingle, $str);
-
-        $regex = '/[\xC0-\xFE\x8A-\x8F\x9A-\x9F\xA3\xB3\xA5\xAA\xAF\xB9\xBA\xBC\xBE\xBF][a-z]|[a-z][\xC0-\xFE\x8A-\x8F\x9A-\x9F\xA3\xB3\xA5\xAA\xAF\xB9\xBA\xBC\xBE\xBF]/';
-        $weight += 2 * preg_match_all($regex, $str);
-
-        return $weight;
-    }
-
-    /**
-     * @param array $chars
-     * @param string $str
-     * @return null|string
-     */
-    protected static function detectWin1252(array $chars, $str)
-    {
-        if (array_intersect_key(static::$win1252StopList, $chars)) {
-            return false;
-        }
-
-        $weight = 0;
-
-        foreach (array_intersect_key(static::$win1252Negatives, $chars) as $code => $hex) {
-            $weight -= 10 * $chars[$code];
-        }
-
-        $weight -= 10 * preg_match_all(static::$win1252NonSingle, $str);
-
-        $regex = '/[\xC0-\xFF\x8A\x9A\x8C\x9C\x8E\x9E][a-z]|[a-z][\xC0-\xFF\x8A\x9A\x8C\x9C\x8E\x9E]/';
-        $weight += 5 * preg_match_all($regex, $str);
-
-        return $weight;
-    }
-
-    /**
-     * @param array $chars
-     * @param string $str
-     * @return null|string
-     */
-    protected static function detectWin1251(array $chars, $str)
-    {
-        if (array_intersect_key(static::$win1251StopList, $chars)) {
-            return false;
-        }
-
-        $weight = 0;
-
-        foreach (array_intersect_key(static::$win1251Positives, $chars) as $code => $hex) {
-            $weight += 10 * $chars[$code];
-        }
-
-        foreach (array_intersect_key(static::$win1251Negatives, $chars) as $code => $hex) {
-            $weight -= 10 * $chars[$code];
-        }
-
-        $weight -= 10 * preg_match_all(static::$win1251NonSingle, $str);
-
-        // Either Cyrillic capital YA or German eszett
-        if (isset($chars[223])) {
-            $pos = strpos($str, "\xDF");
-
-            if ($pos === 0) {
-                $weight += 25;
-            } else {
-                $prev = ord($str[$pos - 1]); // previous letter
-
-                if ($prev !== 228 && $prev !== 246 && $prev !== 252 // German umlauts
-                    && !isset(static::$asciiVowels[$prev])
-                ) {
-                    $weight += 10 * $chars[223];
-                }
-            }
-        }
-
-        // number sign or a with ogonek
-        if (isset($chars[185])) {
-            $pos = strpos($str, "\xB9");
-
-            if ($pos === 0) {
-                $weight += 25;
-            }
-
-            $next = ord($str[$pos + 1]);
-
-            if ($next > 47 && $next < 58) {
-                return true;
-            }
-        }
-
-        $regex = '/([\xC0-\xD9\xDD-\xDF\xA1\xA8\xE0-\xFF\xA2\xB3\xB8\xBA\xBF\xB5][\xE0-\xFF\xA2\xB3\xB8\xBA\xBF\xB5]{2})/';
-        $weight += 3 * preg_match_all($regex, $str);
-
-        $i = 0;
-        while (isset($str[$i + 1])) {
-            if (isset(static::$invalid1251Seq[$str[$i]][$str[$i + 1]])) {
-                $weight -= 10;
-            }
-            $i++;
-        }
-
-        return $weight;
-    }
-
-    /**
-     * Generates a table of given charsets, useful for developers
-     *
-     * @param string|array $charsets
-     * @param bool $render
-     * @return array|string
-     */
-    public static function getCharTable($charsets, $render = false)
-    {
-        $table = [];
-        $nums = range(128, 255);
-        $chars = array_map('chr', $nums);
-        $chars = implode("\n", $chars);
-
-        foreach ((array)$charsets as $charset) {
-            $column = iconv($charset, "utf-8//IGNORE", $chars);
-            $column = explode("\n", $column);
-            $table[$charset] = array_combine($nums, $column);
-        }
-
-        if (!$render) {
-            return $table;
-        }
-
-        $output = '';
-
-        for ($i = 128; $i < 256; $i++) {
-            $output .= $i.' | '.strtoupper(dechex($i));
-            foreach ($table as $charset => $codes) {
-                $output .= ' | '.($codes[$i] === '' ? ' ' : $codes[$i]);
-            }
-            $output .= "\n";
-        }
-
-        return $output;
-    }
-
-    public static function prepareNonCyrillicSequences()
-    {
-        $c = [
-            'а:ъ,ы,ь',
-            'б:й',
-            'в:й,э',
-            'г:й,ф,х,ь,ъ',
-            'д:й',
-            'е:э,ъ,ы,ь',
-            'ж:й,ф,х,ш,щ',
-            'з:й,п,щ',
-            'и:ъ,ы,ь',
-            'і:ъ,ы,ь',
-            'й:а,ё,ж,й,э,ъ,ы,ь',
-            'к:й,щ,ь',
-            'л:й,э,ъ',
-            'м:й,ъ',
-            'н:й',
-            'о:ъ,ы,ь',
-            'п:в,г,ж,з,й,ъ',
-            'р:й,ъ',
-            'с:й',
-            'т:й',
-            'у:ъ,ы,ь',
-            'ў:ъ,ы,ь',
-            'ф:б,ж,з,й,п,х,ц,ъ,э',
-            'х:ё,ж,й,щ,ы,ь,ю,я',
-            'ц:б,ж,й,ф,х,ч,щ,ъ',
-            'ч:б,г,з,й,п,ф,щ,ъ,ю,я',
-            'ш:д,ж,з,й,щ,ъ',
-            'щ:б,г,д,ж,з,й,л,п,т,ф,х,ц,ч,ш,щ,ъ,ы,э,ю,я',
-            'ъ: ,ц,у,к,н,г,ш,щ,з,й,х,ъ,ф,ы,в,а,п,р,о,л,д,ж,э,ч,с,м,и,т,ь,б',
-            'ы:а,ё,о,ф,э,ы',
-            'ь:а,й,л,у,ы',
-            'э:а,е,ё,ц,ч,э,ю,ъ,ы,ь',
-            'ю:у,ъ,ы,ь',
-            'я:а,ё,о,э,ъ,ы,ь',
+        $weights = [
+            static::CP1250 => 0,
+            static::CP1252 => 0,
         ];
 
-        $c = implode("\n", $c);
-        $c = mb_convert_encoding($c, 'Windows-1251', 'UTF-8');
-        $c = explode("\n", $c);
-
-        static::$invalid1251Seq = [];
-
-        foreach ($c as $line) {
-            list($first, $second) = explode(':', $line);
-            static::$invalid1251Seq[strtoupper($first)] = static::$invalid1251Seq[$first] = array_fill_keys(explode(',',
-                $second), true);
+        foreach (Alphabet::$chars as $lang => $codes) {
+            if (!array_diff_key($chars, $codes)) {
+                if (!$weights[Alphabet::$langCharsets[$lang]]) {
+                    $weights[Alphabet::$langCharsets[$lang]] += 500;
+                }
+            }
         }
+
+        if ($weights[static::CP1250] !== $weights[static::CP1252]) {
+            return $weights[static::CP1250] > $weights[static::CP1252] ? static::CP1250 : static::CP1252;
+        }
+
+        arsort($chars);
+
+        $langs = [];
+        foreach ($chars as $char => $count) {
+            foreach (array_column(Alphabet::$chars, $char) as $lang) {
+                if (!isset($langs[$lang])) {
+                    $langs[$lang] = 0;
+                }
+
+                $langs[$lang] += 10 * $count;
+            }
+        }
+
+        $langs = array_keys($langs, max($langs));
+
+        if (!isset($langs[1])) {
+            return Alphabet::$langCharsets[$langs[0]];
+        }
+
+        $enc = [];
+        foreach ($langs as $lang) {
+            $enc[Alphabet::$langCharsets[$lang]] = true;
+        }
+
+        if (count($enc) === 1) {
+            return key($enc);
+        }
+
+        // At this point we've got a relatively short string which fits into multiple alphabets in both encodings.
+
+        if (isset($chars[141]) || isset($chars[143]) || isset($chars[157]) || preg_match('/[\xA3\xB3\xAA\xAF\xB9\xA5\xBA\xBC\xBE][a-z\xC0-\xFF]/', $str)) {
+            return static::CP1250;
+        }
+
+        return static::CP1252;
     }
 }
