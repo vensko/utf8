@@ -36,7 +36,7 @@ class Utf8
      * @param bool $force
      * @return string
      */
-    public static function utf8($str, $fromEncoding = null, $force = false)
+    public static function convert($str, $fromEncoding = null, $force = false)
     {
         if ($fromEncoding === null) {
             $fromEncoding = static::detect($str);
@@ -71,7 +71,7 @@ class Utf8
      * @param string $str
      * @return string
      */
-    public static function detect($str)
+    public static function detectEncoding($str)
     {
         if ($str === '') {
             return static::ASCII;
