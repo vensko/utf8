@@ -2,7 +2,7 @@
 
 use Vensko\Utf8;
 
-require_once __DIR__.'/Charset.php';
+require_once __DIR__.'/Utf8.php';
 require_once __DIR__.'/Alphabet.php';
 
 foreach (glob(__DIR__.'/tests/*') as $dir) {
