@@ -217,21 +217,27 @@ class Utf8
         $chars = count_chars($str, 1);
         $chars = array_diff_key($chars, static::$asciiRange);
 
-        $weights = [
+        $matched = [
             static::CP1250 => 0,
             static::CP1252 => 0,
         ];
 
         foreach (Alphabet::$chars as $lang => $codes) {
             if (!array_diff_key($chars, $codes)) {
-                if (!$weights[Alphabet::$langCharsets[$lang]]) {
-                    $weights[Alphabet::$langCharsets[$lang]] += 500;
+                $enc = Alphabet::$langCharsets[$lang];
+
+                if (!$matched[$enc]) {
+                    $matched[$enc] = 1;
+
+                    if (min($matched)) {
+                        break;
+                    }
                 }
             }
         }
 
-        if ($weights[static::CP1250] !== $weights[static::CP1252]) {
-            return $weights[static::CP1250] > $weights[static::CP1252] ? static::CP1250 : static::CP1252;
+        if ($matched[static::CP1250] !== $matched[static::CP1252]) {
+            return $matched[static::CP1250] > $matched[static::CP1252] ? static::CP1250 : static::CP1252;
         }
 
         arsort($chars);
