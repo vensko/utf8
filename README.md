@@ -1,5 +1,5 @@
 # utf8
-Yet another UTF-8 library. Initially written to detect encoding of media tags and convert them to UTF-8, it's optimized to work with small chunks of text. Original idea was to collect detection results and choose encoding, which was detected in most cases. For large texts, I'd recommend [chardet](https://github.com/chardet/chardet).
+Yet another UTF-8 library, which is able to distinguish Windows-1250/1251/1252.
 
 # Usage
 ```
@@ -12,8 +12,8 @@ $encoding = Utf8::detectUtf16WithoutBOM($anyString);
 $encoding = Utf8::detectSingleByteEncoding($singleByteString);
 
 $stringUtf8 = Utf8::convert($anyString);
-$stringUtf8 = Utf8::convert($stringUtf16, 'UTF-16LE');
-$stringUtf8 = Utf8::convert($stringUtf16, null, true); // force UTF-8 output
+$stringUtf8 = Utf8::convert($stringUtf16le, 'UTF-16LE');
+$stringUtf8 = Utf8::convert($anyString, null, true); // force UTF-8 output
 ```
 
 # Supported charsets so far
@@ -27,4 +27,4 @@ $stringUtf8 = Utf8::convert($stringUtf16, null, true); // force UTF-8 output
  - UTF-7 with BOM
  - Windows-1250
  - Windows-1251
- - ISO-8859-1
+ - Windows-1252 / ISO-8859-1
